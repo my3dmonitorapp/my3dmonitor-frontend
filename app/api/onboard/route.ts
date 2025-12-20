@@ -2,10 +2,7 @@ import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
   try {
-    // Full webhook URL (recommended)
     const onboardUrl = process.env.N8N_ONBOARD_URL;
-
-    // Fallback if you prefer base URL + fixed path
     const baseUrl = process.env.N8N_BASE_URL;
 
     const url =
