@@ -2,29 +2,33 @@ import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
   try {
-    const baseUrl = process.env.N8N_BASE_URL;
-    const adminKey = process.env.N8N_ADMIN_KEY;
+    // Full webhook URL (recommended)
+    const onboardUrl = process.env.N8N_ONBOARD_URL;
 
-    if (!baseUrl) {
-      return NextResponse.json({ error: "Missing N8N_BASE_URL" }, { status: 500 });
-    }
-    if (!adminKey) {
-      return NextResponse.json({ error: "Missing N8N_ADMIN_KEY" }, { status: 500 });
+    // Fallback if you prefer base URL + fixed path
+    const baseUrl = process.env.N8N_BASE_URL;
+
+    const url =
+      onboardUrl ||
+      (baseUrl ? `${baseUrl.replace(/\/$/, "")}/webhook/admin/onboard` : null);
+
+    if (!url) {
+      return NextResponse.json(
+        { error: "Missing N8N_ONBOARD_URL (or N8N_BASE_URL)" },
+        { status: 500 }
+      );
     }
 
     const body = await req.json();
 
-    const resp = await fetch(`${baseUrl.replace(/\/$/, "")}/admin/onboard`, {
+    const resp = await fetch(url, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-admin-key": adminKey,
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
     });
 
     const text = await resp.text();
-    let data;
+    let data: any;
     try {
       data = JSON.parse(text);
     } catch {
