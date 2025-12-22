@@ -1,13 +1,14 @@
-export default function AppHome() {
+import { auth } from "@/auth";
+
+export default async function AppHome() {
+  const session = await auth();
+
   return (
     <main style={{ maxWidth: 900, margin: "40px auto", padding: 16, fontFamily: "system-ui" }}>
       <h1>Dashboard</h1>
-      <p>Frontend v1: read-only dashboard + onboarding.</p>
-
-      <div style={{ display: "flex", gap: 12, marginTop: 12 }}>
-        <a href="/app/onboarding">Onboarding</a>
-        <a href="/install-agent">Install Agent</a>
-      </div>
+      <pre style={{ background: "#111", color: "#0f0", padding: 16, borderRadius: 8, overflowX: "auto" }}>
+        {JSON.stringify(session, null, 2)}
+      </pre>
     </main>
   );
 }
