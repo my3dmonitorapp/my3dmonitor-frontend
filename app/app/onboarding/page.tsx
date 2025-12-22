@@ -4,7 +4,6 @@ import { useMemo, useState } from "react";
 
 type PrinterInput = {
   printer_id: string;
-  name: string;
   tz?: string;
 };
 
@@ -31,11 +30,10 @@ export default function OnboardingPage() {
 
   // Temporary until Paddle: plan selector controls allowed printers
   const [plan, setPlan] = useState<PlanKey>("free");
-
   const maxPrinters = PLANS[plan].maxPrinters;
 
   const [printers, setPrinters] = useState<PrinterInput[]>([
-    { printer_id: "voron01", name: "Voron 0.1", tz: "Asia/Jakarta" },
+    { printer_id: "voron01", tz: "Asia/Jakarta" },
   ]);
 
   const [loading, setLoading] = useState(false);
@@ -45,8 +43,8 @@ export default function OnboardingPage() {
   const canAddMore = printers.length < maxPrinters;
 
   const validation = useMemo(() => {
-    const ids = printers.map((p) => p.printer_id.trim());
-    const emptyId = ids.some((id) => !id);
+    const ids = printers.map((p) => p.printer_id.trim()).filter(Boolean);
+    const emptyId = printers.some((p) => !p.printer_id.trim());
     const dupId = new Set(ids).size !== ids.length;
 
     return {
@@ -62,10 +60,7 @@ export default function OnboardingPage() {
 
   function addPrinter() {
     if (!canAddMore) return;
-    setPrinters((prev) => [
-      ...prev,
-      { printer_id: "", name: "", tz: tzDefault },
-    ]);
+    setPrinters((prev) => [...prev, { printer_id: "", tz: tzDefault }]);
   }
 
   function removePrinter(i: number) {
@@ -83,16 +78,13 @@ export default function OnboardingPage() {
       if (validation.overLimit)
         throw new Error(`Your plan allows max ${maxPrinters} printers.`);
 
-      // Keep payload compatible with your existing n8n flow.
-      // We send "name" too — if n8n ignores unknown fields, fine.
-      // If you want name stored, later we’ll map it in the Google Sheets node.
+      // Keep payload compatible with your existing n8n flow
       const payload = {
         customer_id: customerId.trim(),
         tz_default: tzDefault.trim(),
-        plan, // optional; useful for later debugging
+        plan, // optional; remove later when Paddle is integrated
         printers: printers.map((p) => ({
           printer_id: slugifyPrinterId(p.printer_id),
-          name: p.name.trim(),
           tz: (p.tz || tzDefault).trim(),
         })),
       };
@@ -118,7 +110,7 @@ export default function OnboardingPage() {
       <h1>Onboarding</h1>
 
       <p>
-        Choose your plan (temporary). After Paddle is integrated, this will be automatic.
+        Temporary plan selector (until Paddle). This controls how many printers can be added.
       </p>
 
       <div style={{ display: "grid", gap: 10, marginTop: 16 }}>
@@ -174,7 +166,7 @@ export default function OnboardingPage() {
             key={i}
             style={{
               display: "grid",
-              gridTemplateColumns: "1fr 1fr 1fr auto",
+              gridTemplateColumns: "1fr 1fr auto",
               gap: 10,
               alignItems: "center",
             }}
@@ -185,18 +177,14 @@ export default function OnboardingPage() {
               onChange={(e) => updatePrinter(i, { printer_id: e.target.value })}
               style={{ padding: 10 }}
             />
-            <input
-              placeholder="Printer name (friendly) e.g. Voron Living Room"
-              value={p.name}
-              onChange={(e) => updatePrinter(i, { name: e.target.value })}
-              style={{ padding: 10 }}
-            />
+
             <input
               placeholder="Timezone (optional)"
               value={p.tz || ""}
               onChange={(e) => updatePrinter(i, { tz: e.target.value })}
               style={{ padding: 10 }}
             />
+
             <button onClick={() => removePrinter(i)}>Remove</button>
           </div>
         ))}
@@ -216,11 +204,24 @@ export default function OnboardingPage() {
             <h2>Result</h2>
             <p>
               Install the agent from{" "}
-              <a href="https://github.com/my3dmonitorapp/printer-agent" target="_blank" rel="noreferrer">
+              <a
+                href="https://github.com/my3dmonitorapp/printer-agent"
+                target="_blank"
+                rel="noreferrer"
+              >
                 https://github.com/my3dmonitorapp/printer-agent
               </a>
             </p>
-            <pre style={{ background: "#111", color: "#0f0", padding: 16, borderRadius: 8, overflowX: "auto" }}>
+
+            <pre
+              style={{
+                background: "#111",
+                color: "#0f0",
+                padding: 16,
+                borderRadius: 8,
+                overflowX: "auto",
+              }}
+            >
               {JSON.stringify(result, null, 2)}
             </pre>
           </>
