@@ -98,6 +98,11 @@ export default function OnboardingPage() {
       const data = await resp.json();
       if (!resp.ok) throw new Error(data?.error || `Onboarding failed (${resp.status})`);
       setResult(data);
+await fetch("/api/user/bind", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ customer_id: customerId.trim() }),
+});
     } catch (e: any) {
       setError(e?.message || "Unknown error");
     } finally {
